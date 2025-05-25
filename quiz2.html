@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공부 스타일 유형 테스트</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
+      background-color: #fffafc;
+      color: #333;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #ff6b81;
+    }
+    .question {
+      margin: 30px 0;
+      padding: 20px;
+      border: 2px dashed #ffc6d0;
+      border-radius: 15px;
+      background-color: #fff0f5;
+    }
+    label {
+      font-weight: 600;
+      margin: 0 5px;
+      display: inline-block;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      background-color: #ff95a3;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff6b81;
+    }
+    .result {
+      font-size: 18px;
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 15px;
+      background-color: #fff0f5;
+      border: 2px solid #ffb6c1;
+    }
+    .emoji {
+      font-size: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧁 공부 스타일 테스트 🧠</h1>
+  <div id="quiz"></div>
+  <button onclick="submitQuiz()">결과 보기</button>
+  <button onclick="resetQuiz()">다시 풀기</button>
+  <div id="result" class="result" style="display:none;"></div>
+
+  <script>
+    const questions = [
+      "나는 계획을 세우고 실천하는 편이다.",
+      "어려운 문제를 끝까지 풀어보려 한다.",
+      "나는 쓰거나 말하면서 공부할 때 더 잘 이해된다.",
+      "공부할 때 스마트폰 유혹에 자주 흔들린다.",
+      "나는 스스로 목표를 세워 공부할 동기를 만든다.",
+      "시험 전 미리미리 준비하는 편이다.",
+      "나는 정리된 요약본을 자주 활용한다.",
+      "수업 내용을 내 방식대로 정리하는 것이 편하다.",
+      "친구들과 함께 공부하면 집중이 더 잘 된다.",
+      "막히면 혼자 해결하기보단 물어보고 싶다.",
+      "나는 스스로 공부한 내용을 다시 설명해본다.",
+      "공부할 때 음악이나 배경소음이 있으면 더 편하다."
+    ];
+
+    const weights = [0, 1, 2, 3, 0, 0, 0, 1, 2, 3, 1, 2];
+    const counts = [4, 3, 3, 2];
+
+    function renderQuiz() {
+      const quizContainer = document.getElementById("quiz");
+      quizContainer.innerHTML = "";
+      questions.forEach((q, i) => {
+        const qBox = document.createElement("div");
+        qBox.className = "question";
+        qBox.innerHTML = `
+          <p><strong>Q${i + 1}.</strong> ${q}</p>
+          <label><input type="radio" name="q${i}" value="1"> 1</label>
+          <label><input type="radio" name="q${i}" value="2"> 2</label>
+          <label><input type="radio" name="q${i}" value="3"> 3</label>
+          <label><input type="radio" name="q${i}" value="4"> 4</label>
+          <label><input type="radio" name="q${i}" value="5"> 5</label>
+        `;
+        quizContainer.appendChild(qBox);
+      });
+    }
+
+    function submitQuiz() {
+      const scores = [0, 0, 0, 0];
+
+      for (let i = 0; i < questions.length; i++) {
+        const val = document.querySelector(`input[name='q${i}']:checked`);
+        if (!val) {
+          alert(`${i + 1}번 문항을 체크해주세요.`);
+          return;
+        }
+        scores[weights[i]] += parseInt(val.value);
+      }
+
+      // 평균 점수 계산
+      for (let i = 0; i < scores.length; i++) {
+        scores[i] = scores[i] / counts[i];
+      }
+
+      let maxIdx = scores.indexOf(Math.max(...scores));
+      const types = [
+        { type: "계획형 학습자 📒", desc: "계획 세우기를 좋아하고, 예측 가능한 루틴을 선호해요." },
+        { type: "몰입형 학습자 🔍", desc: "스스로 몰입해서 공부하고 도전을 즐기는 편이에요." },
+        { type: "감각형 학습자 🎨", desc: "친구와의 협력, 활동적인 공부를 좋아해요." },
+        { type: "의존형 학습자 🐣", desc: "도움을 받으며 공부할 때 더 안정감을 느껴요." },
+      ];
+
+      const resultDiv = document.getElementById("result");
+      resultDiv.style.display = "block";
+      resultDiv.innerHTML = `
+        <div class="emoji">${types[maxIdx].type}</div>
+        <p>${types[maxIdx].desc}</p>
+      `;
+    }
+
+    function resetQuiz() {
+      document.getElementById("result").style.display = "none";
+      renderQuiz();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    renderQuiz();
+  </script>
+</body>
+</html>
