@@ -1,11 +1,146 @@
-<html>
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-<title>연습용 페이지</title>
+  <meta charset="UTF-8" />
+  <title>수직과 수평을 찾아라!</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 40px 20px;
+      text-align: center;
+      background: linear-gradient(to right, #e0f7fa, #fce4ec);
+    }
+
+    h1 {
+      font-size: 32px;
+      color: #004d40;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 20px;
+      color: #00695c;
+      margin-bottom: 24px;
+    }
+
+    p.description {
+      max-width: 600px;
+      margin: 0 auto 30px;
+      font-size: 16px;
+      color: #37474f;
+      line-height: 1.6;
+      background-color: #ffffffcc;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    button {
+      padding: 12px 28px;
+      font-size: 18px;
+      background-color: #00796b;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #004d40;
+    }
+
+    #webcam-container {
+      margin: 30px auto 20px;
+      width: 240px;
+      height: 240px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    #label-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    #label-container div {
+      background-color: #ffffffdd;
+      color: #263238;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 17px;
+      min-width: 200px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+    }
+  </style>
 </head>
 <body>
-안녕하세요, 반갑습니다.
-<h1>h1입니다</h1>
-<h4>h4입니다</h4>
-<p>p문입니다</p>
+  <h1>수직(VERTICAL)과 수평(HORIZONTAL)을 찾아라!</h1>
+  <h2>AI와 함께하는 몸으로 배우는 각도 게임</h2>
+
+  <p class="description">
+    이 인공지능은 여러분이 <strong>몸으로 만든 각도</strong>를 보고 <strong>수직</strong>인지 <strong>수평</strong>인지 구별하는 똑똑한 AI예요.<br/>
+    카메라 앞에서 팔을 위로 올리면 수직(VERTICAL), 양 옆으로 벌리면 수평(HORIZONTAL)으로 인식할 수 있어요.<br/>
+    “Start” 버튼을 누르고 여러분의 팔로 AI를 속이지 못하게 해보세요!
+  </p>
+
+  <button type="button" onclick="init()">Start</button>
+  <div id="webcam-container"></div>
+  <div id="label-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script type="text/javascript">
+    const URL = "https://teachablemachine.withgoogle.com/models/o1WHIL8Pe/";
+    let model, webcam, labelContainer, maxPredictions;
+
+    async function init() {
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
+
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+
+      const flip = true;
+      webcam = new tmImage.Webcam(240, 240, flip);
+      await webcam.setup({ facingMode: "user" }).catch(err => {
+        alert("📷 카메라 권한을 허용해 주세요.");
+        console.error(err);
+      });
+      await webcam.play();
+      window.requestAnimationFrame(loop);
+
+      document.getElementById("webcam-container").appendChild(webcam.canvas);
+      labelContainer = document.getElementById("label-container");
+      for (let i = 0; i < maxPredictions; i++) {
+        labelContainer.appendChild(document.createElement("div"));
+      }
+    }
+
+    async function loop() {
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+      for (let i = 0; i < maxPredictions; i++) {
+        const classPrediction =
+          prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(1) + "%";
+        labelContainer.childNodes[i].innerHTML = classPrediction;
+      }
+    }
+  </script>
 </body>
 </html>
